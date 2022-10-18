@@ -1,9 +1,9 @@
 package com.lamarques.testecompose.ui.activities
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -20,13 +20,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.lamarques.testecompose.R
+import coil.compose.AsyncImage
 import com.lamarques.testecompose.chat.models.ChatMessage
 import com.lamarques.testecompose.presentation.MainViewModel
 import com.lamarques.testecompose.ui.theme.Shapes
@@ -45,6 +44,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun MyApp() {
     Surface(
@@ -61,8 +61,8 @@ fun MyApp() {
                 AppBottomBar()
             }
 
-        ) {
-            ChatContent(vmMain)
+        ) { contentPadding ->
+            ChatContent(vmMain, contentPadding)
         }
     }
 }
@@ -80,9 +80,9 @@ fun AppTopBar() {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(Icons.Rounded.ArrowBack, contentDescription = "Voltar")
-            Image(
-                painter = painterResource(id = R.drawable.person_1),
-                contentDescription = null,
+            AsyncImage(
+                "https://robohash.org/Camille",
+                null,
                 Modifier
                     .size(
                         Dp(36f)
@@ -130,9 +130,11 @@ fun AppBottomBar() {
 }
 
 @Composable
-fun ChatContent(vmMain: MainViewModel) {
+fun ChatContent(vmMain: MainViewModel, contentPadding: PaddingValues) {
     Column(
-        Modifier.fillMaxWidth()
+        Modifier
+            .fillMaxWidth()
+            .padding(contentPadding)
     ) {
         val listMessages = vmMain.handleListMessage().observeAsState()
 
@@ -143,29 +145,30 @@ fun ChatContent(vmMain: MainViewModel) {
                     if (chatMessage.origin == 0) {
                         MessageContainer(
                             chatMessage = chatMessage,
-                            alignment = Alignment.CenterEnd
+                            alignment = Alignment.CenterEnd,
+                            Color.LightGray
                         )
                     } else {
                         MessageContainer(
                             chatMessage = chatMessage,
-                            alignment = Alignment.CenterStart
+                            alignment = Alignment.CenterStart,
+                            Color.LightGray
                         )
                     }
                 }
             }
         })
-
     }
 }
 
 @Composable
-fun MessageContainer(chatMessage: ChatMessage, alignment: Alignment) {
+fun MessageContainer(chatMessage: ChatMessage, alignment: Alignment, color: Color) {
     Box(
         Modifier
             .padding(Dp(8f))
             .fillMaxWidth(), contentAlignment = alignment
     ) {
-        ChatBubble(chatMessage = chatMessage, Color.LightGray)
+        ChatBubble(chatMessage = chatMessage, color)
     }
 }
 
@@ -202,6 +205,6 @@ fun ChatBubble(chatMessage: ChatMessage, color: Color) {
 fun DefaultPreview() {
     TesteComposeTheme {
         val chatMessage = ChatMessage("08:51", "Teste", 0)
-        MessageContainer(chatMessage = chatMessage, Alignment.CenterEnd)
+        MessageContainer(chatMessage = chatMessage, Alignment.CenterEnd, Color.LightGray)
     }
 }
