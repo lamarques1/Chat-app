@@ -5,9 +5,9 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import com.lamarques.testecompose.chat.models.ChatMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.text.SimpleDateFormat
 import java.util.*
 import javax.inject.Inject
 
@@ -20,23 +20,39 @@ class MainViewModel @Inject constructor(
     fun handleListMessage(): LiveData<List<ChatMessage>> = _listMessages
 
     init {
-        val messagesJson = sharedPreferences.getString(KEY_SHARED_PREFS, "[]")
-        val gson = Gson()
-        val type = object : TypeToken<List<ChatMessage>?>() {}.type
-        val listMessage = gson.fromJson<List<ChatMessage>?>(messagesJson, type)
-
-        _listMessages.value = listMessage ?: arrayListOf()
+        clearMessages()
     }
 
     fun sendMessage(message: String) {
         if (message.trim().isEmpty()) return
-        val chatMessage = ChatMessage(Date(), message, 0)
+        if (message.trim() == "clear") {
+            clearMessages()
+            return
+        }
+
+        addMessageToList(message)
+        saveMessageOnSharedPrefs()
+    }
+
+    private fun saveMessageOnSharedPrefs() {
+        val gson = Gson()
+        val messagesJson = gson.toJson(_listMessages.value ?: "[]")
+        val editor = sharedPreferences.edit()
+        editor.putString(KEY_SHARED_PREFS, messagesJson)
+        editor.apply()
+    }
+
+    private fun addMessageToList(message: String) {
+        val time = SimpleDateFormat("hh:mm").format(Date())
+        val chatMessage = ChatMessage(time, message, 0)
         _listMessages.value = _listMessages.value?.toMutableList()?.apply {
             add(chatMessage)
         }
+    }
 
+    private fun clearMessages() {
         val gson = Gson()
-        val messagesJson = gson.toJson(_listMessages.value ?: "[]")
+        val messagesJson = gson.toJson("[]")
         val editor = sharedPreferences.edit()
         editor.putString(KEY_SHARED_PREFS, messagesJson)
         editor.apply()

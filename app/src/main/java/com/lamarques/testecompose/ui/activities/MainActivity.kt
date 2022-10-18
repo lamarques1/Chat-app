@@ -21,8 +21,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.lamarques.testecompose.R
 import com.lamarques.testecompose.chat.models.ChatMessage
@@ -132,8 +134,6 @@ fun ChatContent(vmMain: MainViewModel) {
     Column(
         Modifier.fillMaxWidth()
     ) {
-        val coroutineScope = rememberCoroutineScope()
-
         val listMessages = vmMain.handleListMessage().observeAsState()
 
         LazyColumn(content = {
@@ -141,9 +141,15 @@ fun ChatContent(vmMain: MainViewModel) {
                 items(list.size) {
                     val chatMessage = list[it]
                     if (chatMessage.origin == 0) {
-                        SentMessage(message = chatMessage.message)
+                        MessageContainer(
+                            chatMessage = chatMessage,
+                            alignment = Alignment.CenterEnd
+                        )
                     } else {
-                        ReceivedMessage(message = chatMessage.message)
+                        MessageContainer(
+                            chatMessage = chatMessage,
+                            alignment = Alignment.CenterStart
+                        )
                     }
                 }
             }
@@ -153,44 +159,49 @@ fun ChatContent(vmMain: MainViewModel) {
 }
 
 @Composable
-fun ReceivedMessage(message: String) {
+fun MessageContainer(chatMessage: ChatMessage, alignment: Alignment) {
     Box(
         Modifier
             .padding(Dp(8f))
-            .fillMaxWidth(), contentAlignment = Alignment.CenterStart
+            .fillMaxWidth(), contentAlignment = alignment
     ) {
-        ChatBubble(message = message)
+        ChatBubble(chatMessage = chatMessage, Color.LightGray)
     }
 }
 
 @Composable
-fun SentMessage(message: String) {
+fun ChatBubble(chatMessage: ChatMessage, color: Color) {
     Box(
-        Modifier
-            .padding(Dp(8f))
-            .fillMaxWidth(), contentAlignment = Alignment.CenterEnd
-    ) {
-        ChatBubble(message = message)
-    }
-}
-
-@Composable
-fun ChatBubble(message: String) {
-    Text(
-        text = message,
         Modifier
             .clip(CircleShape)
-            .background(Color.LightGray)
+            .background(color)
             .defaultMinSize(Dp(80f))
             .fillMaxWidth(0.7f)
             .padding(Dp(8f))
-    )
+    ) {
+        Column(Modifier.fillMaxWidth()) {
+            Text(
+                text = chatMessage.message,
+                style = TextStyle(
+                    fontSize = 16.sp
+                )
+            )
+            Text(
+                text = chatMessage.time,
+                Modifier.align(Alignment.End),
+                style = TextStyle(
+                    fontSize = 10.sp
+                )
+            )
+        }
+    }
 }
 
 @Preview(showBackground = true)
 @Composable
 fun DefaultPreview() {
     TesteComposeTheme {
-        MyApp()
+        val chatMessage = ChatMessage("08:51", "Teste", 0)
+        MessageContainer(chatMessage = chatMessage, Alignment.CenterEnd)
     }
 }
